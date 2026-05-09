@@ -1,6 +1,6 @@
 const CACHE_NAME = 'ludus-latrunculorum-v3';
 const ASSETS = [
-    './Ludus Latrunculorum.html',
+    './index.html',
     './styles.css',
     './game.js',
     './ai.js',

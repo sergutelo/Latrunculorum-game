@@ -2,7 +2,7 @@
   "name": "Ludus Latrunculorum",
   "short_name": "Latrunculorum",
   "description": "El antiguo juego de estrategia de las legiones romanas.",
-  "start_url": "./Ludus Latrunculorum.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#c9a84c",
