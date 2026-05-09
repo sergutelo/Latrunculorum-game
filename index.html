@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ludus Latrunculorum - El antiguo juego de mesa de estrategia romano. Juega contra la máquina o contra otro jugador.">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c9a84c">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Ludus Latrunculorum — El Juego de los Legionarios</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ====== SETUP MODAL ====== -->
+    <div id="setup-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h1 id="modal-title" class="modal-title">Ludus Latrunculorum</h1>
+            <p class="modal-subtitle">Bellum in Tabula — Guerra sobre el Tablero</p>
+
+            <!-- Game Mode -->
+            <div class="mode-selector">
+                <button id="mode-ai" class="mode-btn active" type="button">
+                    <span class="mode-icon">🏛️</span>
+                    Contra Caesar
+                </button>
+                <button id="mode-pvp" class="mode-btn" type="button">
+                    <span class="mode-icon">⚔️</span>
+                    Dos Jugadores
+                </button>
+            </div>
+
+            <!-- Player 1 -->
+            <div class="settings-section">
+                <span class="settings-label"><span class="player-dot" style="background:#c62828"></span> Jugador I</span>
+                <div class="settings-row">
+                    <input type="text" id="p1-name" class="roman-input" value="Legatus" placeholder="Tu nombre">
+                    <div class="color-input-wrap">
+                        <input type="color" id="p1-color" value="#c62828">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player 2 (PvP only) -->
+            <div id="p2-section" class="settings-section" style="display:none">
+                <span class="settings-label"><span class="player-dot" style="background:#1a237e"></span> Jugador II</span>
+                <div class="settings-row">
+                    <input type="text" id="p2-name" class="roman-input" value="Caesar AI" placeholder="Nombre rival">
+                    <div class="color-input-wrap">
+                        <input type="color" id="p2-color" value="#1a237e">
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Difficulty -->
+            <div id="diff-selector" class="settings-section">
+                <span class="settings-label">Dificultad del Caesar</span>
+                <div class="diff-selector">
+                    <button class="diff-btn" data-diff="tiro" type="button">🏹 Tiro<br><small style="opacity:0.6">Novato</small></button>
+                    <button class="diff-btn active" data-diff="centurio" type="button">⚔️ Centurio<br><small style="opacity:0.6">Normal</small></button>
+                    <button class="diff-btn" data-diff="legatus" type="button">🦅 Legatus<br><small style="opacity:0.6">Difícil</small></button>
+                </div>
+            </div>
+
+            <!-- Board Settings -->
+            <div class="settings-section">
+                <span class="settings-label">Tablero & Reglas</span>
+                <div class="settings-row" style="margin-bottom:0.5rem">
+                    <div style="flex:1">
+                        <small style="color:var(--gold-dark);font-size:0.65rem">FILAS (7-12)</small>
+                        <input type="number" id="rows-input" class="roman-input settings-lock" value="8" min="7" max="12">
+                    </div>
+                    <div style="flex:1">
+                        <small style="color:var(--gold-dark);font-size:0.65rem">COLUMNAS (8-14)</small>
+                        <input type="number" id="cols-input" class="roman-input settings-lock" value="12" min="8" max="14">
+                    </div>
+                </div>
+                <div class="settings-row" style="margin-bottom:0.5rem">
+                    <select id="start-player-input" class="roman-select settings-lock">
+                        <option value="0">Empieza Jugador I</option>
+                        <option value="1">Empieza Jugador II</option>
+                    </select>
+                </div>
+                <div class="settings-row">
+                    <select id="variant-input" class="roman-select settings-lock">
+                        <option value="bell">Versión Bell (Rápida)</option>
+                        <option value="kowalski">Versión Kowalski (Dux)</option>
+                    </select>
+                </div>
+                <p id="variant-info" class="variant-info"></p>
+            </div>
+
+            <!-- Timer Settings -->
+            <div class="settings-section">
+                <span class="settings-label">⏱ Temporizador por Turno</span>
+                <div class="timer-row">
+                    <label class="timer-toggle-label">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="timer-enabled">
+                            <span class="toggle-slider"></span>
+                        </span>
+                        Activar temporizador
+                    </label>
+                </div>
+                <div id="timer-config" class="settings-row" style="margin-top:0.5rem;display:none">
+                    <small style="color:var(--gold-dark);font-size:0.7rem;flex:0 0 auto">Tiempo por turno:</small>
+                    <select id="timer-duration" class="roman-select" style="flex:1">
+                        <option value="15">15 segundos</option>
+                        <option value="30" selected>30 segundos</option>
+                        <option value="60">60 segundos</option>
+                        <option value="90">90 segundos</option>
+                        <option value="120">2 minutos</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button id="play-btn" class="btn-play" type="button">⚔ Ad Bellum!</button>
+            <button id="tutorial-btn" class="btn-action" style="margin-top: 1rem; width: 100%;" type="button">📜 Iniciar Tutorial</button>
+            <button id="cancel-btn" class="btn-cancel hidden" type="button">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- ====== GAME UI ====== -->
+    <div class="game-container">
+        <!-- HUD -->
+        <div class="hud">
+            <div id="p1-card" class="player-card">
+                <div id="p1-tag" class="player-name">---</div>
+                <div id="p1-score" class="player-pieces">⚔ 0 piezas</div>
+            </div>
+
+            <!-- Turn indicator + Timer -->
+            <div id="turn-indicator" class="turn-indicator">
+                <div id="timer-widget" class="timer-widget" style="display:none">
+                    <div class="timer-ring" id="timer-ring">
+                        <svg viewBox="0 0 44 44">
+                            <circle class="track" cx="22" cy="22" r="20"/>
+                            <circle class="progress" id="timer-progress" cx="22" cy="22" r="20"/>
+                        </svg>
+                        <div class="timer-count" id="timer-count">30</div>
+                    </div>
+                </div>
+                <div id="turn-text-block">
+                    <div class="turn-label">Turno</div>
+                    <div id="turn-name" class="turn-name">---</div>
+                </div>
+            </div>
+
+            <div id="p2-card" class="player-card">
+                <div>
+                    <span id="p2-tag" class="player-name">---</span>
+                    <span id="ai-badge" class="ai-badge" style="display:none">IA</span>
+                </div>
+                <div id="p2-score" class="player-pieces">⚔ 0 piezas</div>
+            </div>
+        </div>
+
+        <!-- Main area: Board + History panel -->
+        <div class="game-main">
+            <!-- Board -->
+            <div class="board-frame">
+                <div id="game-board" class="game-board"></div>
+            </div>
+
+            <!-- History Panel -->
+            <div id="history-panel" class="history-panel">
+                <div class="history-header">
+                    <span class="history-title">📜 Historia Belli</span>
+                    <button id="history-toggle" class="history-collapse-btn" type="button" title="Ocultar">◀</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <div class="history-empty">Sin movimientos</div>
+                </div>
+                <button id="undo-btn" class="btn-undo" type="button" disabled>↩ Deshacer</button>
+            </div>
+        </div>
+
+        <!-- AI Thinking -->
+        <div id="ai-thinking" class="ai-thinking">
+            Caesar cogitat
+            <span class="dots"><span></span><span></span><span></span></span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-bar">
+            <button id="theme-toggle" class="btn-theme" type="button" title="Modo claro/oscuro">☀️</button>
+            <button id="sound-toggle" class="btn-action" type="button" title="Sonido: ON">🔊</button>
+            <button id="stats-btn" class="btn-action" type="button">🏆 Gloria</button>
+            <button id="hint-btn" class="btn-action" type="button">💡 Consejo</button>
+            <button id="open-settings-btn" class="btn-action" type="button">⚙ Configuratio</button>
+            <button id="restart-game-btn" class="btn-action danger" type="button">↺ Nova Pugna</button>
+        </div>
+
+        <!-- Alert -->
+        <div id="alert-box" class="game-alert">---</div>
+    </div>
+
+    <!-- ====== VICTORY OVERLAY ====== -->
+    <div id="victory-overlay" class="victory-overlay hidden">
+        <div class="victory-box">
+            <h2>🏆 Victoria!</h2>
+            <p><span id="victory-name">---</span> ha conquistado el campo de batalla</p>
+            <div id="victory-stats" class="victory-stats"></div>
+            <button id="victory-play-again" class="btn-play" type="button">Nova Pugna</button>
+        </div>
+    </div>
+
+    <!-- ====== STATS OVERLAY ====== -->
+    <div id="stats-overlay" class="stats-overlay hidden">
+        <div class="stats-box">
+            <div class="stats-header">
+                <h2 class="stats-title">🏛️ Gloria Aeterna</h2>
+                <button id="stats-close" class="stats-close-btn" type="button">✕</button>
+            </div>
+            <div id="stats-content" class="stats-content"></div>
+        </div>
+    </div>
+
+    <!-- ====== TUTORIAL OVERLAY ====== -->
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
+        <div class="tutorial-dialog">
+            <div class="tutorial-content">
+                <h2 id="tutorial-title" class="tutorial-title">Bienvenido a Ludus Latrunculorum</h2>
+                <p id="tutorial-text" class="tutorial-text">Aprende a comandar tus legiones.</p>
+                <div class="tutorial-actions">
+                    <button id="tutorial-prev" class="btn-action" disabled>Anterior</button>
+                    <button id="tutorial-next" class="btn-play">Siguiente</button>
+                    <button id="tutorial-close" class="btn-action danger" style="margin-left:auto">Salir</button>
+                </div>
+            </div>
+        </div>
+        <div id="tutorial-highlight" class="tutorial-highlight hidden"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="sounds.js"></script>
+    <script src="ai.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
